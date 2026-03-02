@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  ffpas:
+    build: .
+    container_name: ffpas-api
+    ports:
+      - "5000:5000"
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///./data/matches.db
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - DEBUG=False
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./ai_model.pt:/app/ai_model.pt
+    depends_on:
+      - redis
+    restart: unless-stopped
+    networks:
+      - ffpas-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: ffpas-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    networks:
+      - ffpas-network
+    command: redis-server --appendonly yes
+
+volumes:
+  redis-data:
+
+networks:
+  ffpas-network:
+    driver: bridge
